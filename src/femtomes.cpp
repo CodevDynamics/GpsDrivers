@@ -66,7 +66,7 @@
 
 
 GPSDriverFemto::GPSDriverFemto(GPSCallbackPtr callback, void *callback_user,
-			       struct sensor_gps_s *gps_position,
+			       struct vehicle_gps_position_s *gps_position,
 			       float heading_offset)
 	: GPSHelper(callback, callback_user)
 	, _gps_position(gps_position)
