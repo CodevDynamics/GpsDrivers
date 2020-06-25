@@ -399,7 +399,7 @@ int GPSDriverFemto::configure(unsigned &baudrate, OutputMode output_mode)
 		}
 	}
 
-	if (writeAckedCommandFemto("LOG UAVGPSB 0.05\r\n", "<LOG OK", FEMTO_RESPONSE_TIMEOUT) == 0) {
+	if (writeAckedCommandFemto("LOG UAVGPSB 0.2\r\n", "<LOG OK", FEMTO_RESPONSE_TIMEOUT) == 0) {
 		FEMTO_DEBUG("Femto: command LOG UAVGPSB 0.05 success");
 
 	} else {
