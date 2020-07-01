@@ -36,7 +36,8 @@
 
 #include "gps_helper.h"
 #include "../../definitions.h"
-
+#include <mathlib/mathlib.h>
+#include <matrix/math.hpp>
 class RTCMParsing;
 
 /* ms, timeout for waiting for a response*/
