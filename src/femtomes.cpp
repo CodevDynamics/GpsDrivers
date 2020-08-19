@@ -346,7 +346,7 @@ int GPSDriverFemto::configure(unsigned &baudrate, OutputMode output_mode)
 		FEMTO_DEBUG("Femto: baudrate set to %i", test_baudrate);
 
 		for (int run = 0; run < 2; ++run) { /** try several times*/
-			if (writeAckedCommandFemto("UNLOGALL\r\n", "<UNLOGALL OK", FEMTO_RESPONSE_TIMEOUT) == 0 &&
+			if (writeAckedCommandFemto("UNLOGALL COM2\r\n", "<UNLOGALL OK", FEMTO_RESPONSE_TIMEOUT) == 0 &&
 			    writeAckedCommandFemto("VERSION\r\n", "<VERSION OK", FEMTO_RESPONSE_TIMEOUT) == 0) {
 				FEMTO_DEBUG("Femto: got port for baudrate %i", test_baudrate);
 				success = true;
@@ -381,7 +381,7 @@ int GPSDriverFemto::configure(unsigned &baudrate, OutputMode output_mode)
 
 		for (int run = 0; run < 10; ++run) {
 			/** We ask for the port config again. If we get a reply, we know that the changed settings work.*/
-			if (writeAckedCommandFemto("UNLOGALL\r\n", "<UNLOGALL OK", FEMTO_RESPONSE_TIMEOUT) == 0 &&
+			if (writeAckedCommandFemto("UNLOGALL COM2\r\n", "<UNLOGALL OK", FEMTO_RESPONSE_TIMEOUT) == 0 &&
 			    writeAckedCommandFemto("VERSION\r\n", "<VERSION OK", FEMTO_RESPONSE_TIMEOUT) == 0) {
 				success = true;
 				break;
