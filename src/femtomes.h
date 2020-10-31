@@ -82,6 +82,7 @@ typedef struct {
 	uint8_t 	fix_type;		/** 0-1: no fix, 2: 2D fix, 3: 3D fix, 4: RTCM code differential, 5: Real-Time Kinematic, float, 6: Real-Time Kinematic, fixed, 8: Extrapolated. Some applications will not use the value of this field unless it is at least two, so always correctly fill in the fix.*/
 	bool 		vel_ned_valid;		/** True if NED velocity is valid*/
 	uint8_t 	satellites_used;	/** Number of satellites used*/
+	uint8_t 	fix_heading_type;	/** 0: inavalid 5: floats 6: fixed*/
 } femto_uav_gps_t;
 
 /**
