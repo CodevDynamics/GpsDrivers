@@ -107,7 +107,7 @@ int GPSDriverFemto::handleMessage(int len)
 		_gps_position->satellites_used = _femto_uav_gps.satellites_used;
 		_gps_position->heading_offset = _heading_offset;
 
-		_gps_position->heading = matrix::wrap_pi(math::radians(_femto_uav_gps.heading)- _heading_offset);
+		_gps_position->heading = matrix::wrap_pi(math::radians(_femto_uav_gps.heading) - _heading_offset);
 		_gps_position->timestamp = gps_absolute_time();
 
 		ret = 1;
