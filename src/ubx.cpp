@@ -134,27 +134,33 @@ GPSDriverUBX::configure(unsigned &baudrate, const GPSConfig &config)
 			cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1_STOPBITS, 1, cfg_valset_msg_size);
 			cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1_DATABITS, 0, cfg_valset_msg_size);
 			cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1_PARITY, 0, cfg_valset_msg_size);
+
+			if (_mode == UBXMode::RoverWithMovingBase) {
+				cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1INPROT_RTCM3X, 1, cfg_valset_msg_size);
+			}
+
+			if (_mode != UBXMode::MovingBase) {
+				cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1OUTPROT_RTCM3X, 1, cfg_valset_msg_size);
+			}
+
 			cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1INPROT_UBX, 1, cfg_valset_msg_size);
-			cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1INPROT_RTCM3X, _output_mode == OutputMode::RTCM ? 0 : 1,
-					   cfg_valset_msg_size);
 			// cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1INPROT_RTCM3X, _output_mode == OutputMode::GPS ? 0 : 1,
 			// 		   cfg_valset_msg_size);
 			cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1INPROT_NMEA, 0, cfg_valset_msg_size);
 			cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1OUTPROT_UBX, 1, cfg_valset_msg_size);
 
-			if (_output_mode != OutputMode::GPS) {
-				cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1OUTPROT_RTCM3X, 1, cfg_valset_msg_size);
-			}
+			// if (_output_mode != OutputMode::GPS) {
+			// 	cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1OUTPROT_RTCM3X, 1, cfg_valset_msg_size);
+			// }
 
 			cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1OUTPROT_NMEA, 0, cfg_valset_msg_size);
 			// TODO: are we ever connected to UART2?
 
 			// USB
-			cfgValset<uint8_t>(UBX_CFG_KEY_CFG_USBINPROT_UBX, 1, cfg_valset_msg_size);
-			cfgValset<uint8_t>(UBX_CFG_KEY_CFG_USBINPROT_RTCM3X, _output_mode == OutputMode::RTCM ? 0 : 1,
-					   cfg_valset_msg_size);
+			cfgValset<uint8_t>(UBX_CFG_KEY_CFG_USBINPROT_UBX, 0, cfg_valset_msg_size);
+			cfgValset<uint8_t>(UBX_CFG_KEY_CFG_USBINPROT_RTCM3X, 0, cfg_valset_msg_size);
 			cfgValset<uint8_t>(UBX_CFG_KEY_CFG_USBINPROT_NMEA, 0, cfg_valset_msg_size);
-			cfgValset<uint8_t>(UBX_CFG_KEY_CFG_USBOUTPROT_UBX, 1, cfg_valset_msg_size);
+			cfgValset<uint8_t>(UBX_CFG_KEY_CFG_USBOUTPROT_UBX, 0, cfg_valset_msg_size);
 
 			if (_output_mode != OutputMode::GPS) {
 				cfgValset<uint8_t>(UBX_CFG_KEY_CFG_USBOUTPROT_RTCM3X, 1, cfg_valset_msg_size);
@@ -188,6 +194,7 @@ GPSDriverUBX::configure(unsigned &baudrate, const GPSConfig &config)
 				_proto_ver_27_or_higher = false;
 
 				UBX_DEBUG("trying old protocol");
+				printf("fuck trying old protocol\n");
 
 				/* Send a CFG-PRT message to set the UBX protocol for in and out
 				 * and leave the baudrate as it is, we just want an ACK-ACK for this */
@@ -290,6 +297,7 @@ GPSDriverUBX::configure(unsigned &baudrate, const GPSConfig &config)
 	}
 
 	UBX_DEBUG("Protocol version 27+: %i", static_cast<int>(_proto_ver_27_or_higher));
+	printf("fuck _mode:%d Protocol version 27+: %i\n", _mode, static_cast<int>(_proto_ver_27_or_higher));
 
 	/* Request module version information by sending an empty MON-VER message */
 	if (!sendMessage(UBX_MSG_MON_VER, nullptr, 0)) {
@@ -321,10 +329,10 @@ GPSDriverUBX::configure(unsigned &baudrate, const GPSConfig &config)
 	}
 
 
-	if (_output_mode == OutputMode::RTCM) {
-		// RTCM mode force stationary dynamic model
-		_dyn_model = 2;
-	}
+	// if (_output_mode == OutputMode::RTCM) {
+	// 	// RTCM mode force stationary dynamic model
+	// 	_dyn_model = 2;
+	// }
 
 	int ret;
 
@@ -666,50 +674,50 @@ int GPSDriverUBX::configureDevice(const GNSSSystemsMask &gnssSystems)
 		}
 	}
 
-	int uart2_baudrate = 460800;
+	// int uart2_baudrate = 460800;
 
 	if (_mode == UBXMode::RoverWithMovingBase) {
-		UBX_DEBUG("Configuring UART2 for rover");
-		printf("Configuring UART2 for rover\n");
-		cfg_valset_msg_size = initCfgValset();
-		// heading output @3Hz
-		// cfgValsetPort(UBX_CFG_KEY_MSGOUT_UBX_NAV_RELPOSNED_I2C, 3, cfg_valset_msg_size);
+		// UBX_DEBUG("Configuring UART2 for rover");
+		// printf("Configuring UART2 for rover\n");
+		// cfg_valset_msg_size = initCfgValset();
+		// // heading output @3Hz
+		// // cfgValsetPort(UBX_CFG_KEY_MSGOUT_UBX_NAV_RELPOSNED_I2C, 3, cfg_valset_msg_size);
 
-		cfgValsetPort(MSGOUT_UBX_NAV_RELPOSNED_UART1, 1, cfg_valset_msg_size);
+		// cfgValsetPort(MSGOUT_UBX_NAV_RELPOSNED_UART1, 1, cfg_valset_msg_size);
 
-		// enable RTCM input on uart2 + set baudrate
-		cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1_STOPBITS, 1, cfg_valset_msg_size);
-		cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1_DATABITS, 0, cfg_valset_msg_size);
-		cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1_PARITY, 0, cfg_valset_msg_size);
-		// cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART2INPROT_UBX, 0, cfg_valset_msg_size);
-		cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1INPROT_RTCM3X, 1, cfg_valset_msg_size);
-		// cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART2INPROT_NMEA, 0, cfg_valset_msg_size);
-		// cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART2OUTPROT_UBX, 0, cfg_valset_msg_size);
-		// cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART2OUTPROT_RTCM3X, 0, cfg_valset_msg_size);
-		cfgValset<uint32_t>(UBX_CFG_KEY_CFG_UART1_BAUDRATE, uart2_baudrate, cfg_valset_msg_size);
+		// // enable RTCM input on uart2 + set baudrate
+		// cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1_STOPBITS, 1, cfg_valset_msg_size);
+		// cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1_DATABITS, 0, cfg_valset_msg_size);
+		// cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1_PARITY, 0, cfg_valset_msg_size);
+		// // cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART2INPROT_UBX, 0, cfg_valset_msg_size);
+		// cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1INPROT_RTCM3X, 1, cfg_valset_msg_size);
+		// // cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART2INPROT_NMEA, 0, cfg_valset_msg_size);
+		// // cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART2OUTPROT_UBX, 0, cfg_valset_msg_size);
+		// // cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART2OUTPROT_RTCM3X, 0, cfg_valset_msg_size);
+		// cfgValset<uint32_t>(UBX_CFG_KEY_CFG_UART1_BAUDRATE, uart2_baudrate, cfg_valset_msg_size);
 
-		if (!sendMessage(UBX_MSG_CFG_VALSET, (uint8_t *)&_buf, cfg_valset_msg_size)) {
-			return -1;
-		}
+		// if (!sendMessage(UBX_MSG_CFG_VALSET, (uint8_t *)&_buf, cfg_valset_msg_size)) {
+		// 	return -1;
+		// }
 
-		if (waitForAck(UBX_MSG_CFG_VALSET, UBX_CONFIG_TIMEOUT, true) < 0) {
-			return -1;
-		}
+		// if (waitForAck(UBX_MSG_CFG_VALSET, UBX_CONFIG_TIMEOUT, true) < 0) {
+		// 	return -1;
+		// }
 
 	} else if (_mode == UBXMode::MovingBase) {
 		UBX_DEBUG("Configuring UART1 for moving base");
 		printf("Configuring UART1 for moving base\n");
 		// enable RTCM output on uart2 + set baudrate
 		cfg_valset_msg_size = initCfgValset();
-		cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1_STOPBITS, 1, cfg_valset_msg_size);
-		cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1_DATABITS, 0, cfg_valset_msg_size);
-		cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1_PARITY, 0, cfg_valset_msg_size);
-		// cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1INPROT_UBX, 0, cfg_valset_msg_size);
+		// cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1_STOPBITS, 1, cfg_valset_msg_size);
+		// cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1_DATABITS, 0, cfg_valset_msg_size);
+		// cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1_PARITY, 0, cfg_valset_msg_size);
+		// // cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1INPROT_UBX, 0, cfg_valset_msg_size);
 		// cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1INPROT_RTCM3X, 0, cfg_valset_msg_size);
-		// cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1INPROT_NMEA, 0, cfg_valset_msg_size);
-		// cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1OUTPROT_UBX, 1, cfg_valset_msg_size);
-		cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1OUTPROT_RTCM3X, 1, cfg_valset_msg_size);
-		cfgValset<uint32_t>(UBX_CFG_KEY_CFG_UART1_BAUDRATE, uart2_baudrate, cfg_valset_msg_size);
+		// // cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1INPROT_NMEA, 0, cfg_valset_msg_size);
+		// // cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1OUTPROT_UBX, 1, cfg_valset_msg_size);
+		// cfgValset<uint8_t>(UBX_CFG_KEY_CFG_UART1OUTPROT_RTCM3X, 1, cfg_valset_msg_size);
+		// cfgValset<uint32_t>(UBX_CFG_KEY_CFG_UART1_BAUDRATE, uart2_baudrate, cfg_valset_msg_size);
 
 		cfgValset<uint8_t>(MSGOUT_RTCM_3X_TYPE4072_0_UART1, 1, cfg_valset_msg_size);
 		cfgValset<uint8_t>(MSGOUT_RTCM_3X_TYPE4072_1_UART1, 1, cfg_valset_msg_size);
@@ -1712,8 +1720,8 @@ GPSDriverUBX::payloadRxDone()
 	}
 
 	// handle message
-	if (0x3C01 == _rx_msg){
-		printf("fuck _rx_msg:%d  _rx_msg:%x \n",_rx_msg,_rx_msg);
+	if (0x3C01 == _rx_msg) {
+		printf("fuck _rx_msg:%d  _rx_msg:%x \n", _rx_msg, _rx_msg);
 	}
 
 	switch (_rx_msg) {
@@ -1986,7 +1994,7 @@ GPSDriverUBX::payloadRxDone()
 			UBX_DEBUG("Heading: %.1f deg, acc: %.1f deg, relLen: %.1f cm, relAcc: %.1f cm, valid: %i %i", (double)heading,
 				  (double)heading_acc, (double)rel_length, (double)rel_length_acc, heading_valid, rel_pos_valid);
 			printf("Heading: %.1f deg, acc: %.1f deg, relLen: %.1f cm, relAcc: %.1f cm, valid: %i %i\n", (double)heading,
-				  (double)heading_acc, (double)rel_length, (double)rel_length_acc, heading_valid, rel_pos_valid);
+			       (double)heading_acc, (double)rel_length, (double)rel_length_acc, heading_valid, rel_pos_valid);
 
 			if (heading_valid && rel_pos_valid && rel_length < 1000.f) { // validity & sanity checks
 				heading *= M_PI_F / 180.0f; // deg to rad, now in range [0, 2pi]
