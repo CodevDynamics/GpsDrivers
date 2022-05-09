@@ -1186,8 +1186,14 @@ GPSDriverUBX::parseChar(const uint8_t b)
 	case UBX_DECODE_RTCM3:
 		if (_rtcm_parsing->addByte(b)) {
 			UBX_DEBUG("got RTCM message with length %i", static_cast<int>(_rtcm_parsing->messageLength()));
-			gotRTCMMessage(_rtcm_parsing->message(), _rtcm_parsing->messageLength());
-			decodeInit();
+
+			if (_rtcm_parsing->messageLength() > 255) {
+				_rtcm_parsing->reset();
+
+			} else {
+				gotRTCMMessage(_rtcm_parsing->message(), _rtcm_parsing->messageLength());
+				decodeInit();
+			}
 		}
 
 		break;
