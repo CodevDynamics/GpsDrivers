@@ -203,7 +203,7 @@
 #define UBX_TX_CFG_PRT_PROTO_UBX                (1<<0)
 #define UBX_TX_CFG_PRT_PROTO_RTCM               (1<<5)
 
-#define UBX_BAUDRATE_M8_AND_NEWER               115200 /**< baudrate for M8+ boards */
+#define UBX_BAUDRATE_M8_AND_NEWER               460800 /**< baudrate for M8+ boards */
 
 /* TX CFG-RATE message contents
  * Note: not used with protocol version 27+ anymore
@@ -347,6 +347,23 @@
 #define UBX_CFG_KEY_MSGOUT_RTCM_3X_TYPE1097_I2C 0x20910318
 #define UBX_CFG_KEY_MSGOUT_RTCM_3X_TYPE1127_I2C 0x209102d6
 #define UBX_CFG_KEY_MSGOUT_RTCM_3X_TYPE1230_I2C 0x20910303
+
+
+#define UBX_CFG_KEY_MSGOUT_UBX_NAV_RELPOSNED_UART1 0x2091008e
+#define UBX_CFG_KEY_MSGOUT_UBX_NAV_RELPOSNED_UART2 0x2091008f
+
+#define UBX_CFG_KEY_MSGOUT_RTCM_3X_TYPE4072_0_UART1  0x209102ff
+#define UBX_CFG_KEY_MSGOUT_RTCM_3X_TYPE4072_1_UART1  0x20910382
+#define UBX_CFG_KEY_MSGOUT_RTCM_3X_TYPE1077_UART1    0x209102cd
+#define UBX_CFG_KEY_MSGOUT_RTCM_3X_TYPE1087_UART1    0x209102d2
+#define UBX_CFG_KEY_MSGOUT_RTCM_3X_TYPE1097_UART1    0x20910319
+#define UBX_CFG_KEY_MSGOUT_RTCM_3X_TYPE1127_UART1    0x209102d7
+#define UBX_CFG_KEY_MSGOUT_RTCM_3X_TYPE1230_UART1    0x20910304
+#define UBX_CFG_KEY_MSGOUT_RTCM_3X_TYPE1074_UART1    0x2091035f
+#define UBX_CFG_KEY_MSGOUT_RTCM_3X_TYPE1084_UART1    0x20910364
+#define UBX_CFG_KEY_MSGOUT_RTCM_3X_TYPE1094_UART1    0x20910369
+#define UBX_CFG_KEY_MSGOUT_RTCM_3X_TYPE1124_UART1    0x2091036e
+
 
 #define UBX_CFG_KEY_MSGOUT_RTCM_3X_TYPE4072_0_UART2  0x20910300
 #define UBX_CFG_KEY_MSGOUT_RTCM_3X_TYPE4072_1_UART2  0x20910383
@@ -905,7 +922,7 @@ public:
 	int receive(unsigned timeout) override;
 	int reset(GPSRestartType restart_type) override;
 
-	bool shouldInjectRTCM() override { return _mode != UBXMode::RoverWithMovingBase; }
+	bool shouldInjectRTCM() override { return _mode == UBXMode::RoverWithMovingBase; }
 
 	enum class Board : uint8_t {
 		unknown = 0,
