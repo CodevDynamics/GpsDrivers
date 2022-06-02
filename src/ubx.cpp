@@ -517,6 +517,9 @@ int GPSDriverUBX::configureDevice(const GNSSSystemsMask &gnssSystems)
 			   cfg_valset_msg_size);
 	cfgValset<uint8_t>(UBX_CFG_KEY_NAVSPG_DYNMODEL, _dyn_model, cfg_valset_msg_size);
 
+	cfgValset<uint8_t>(UBX_CFG_NAVSPG_INFIL_MINELEV, 20, cfg_valset_msg_size);
+	cfgValset<uint8_t>(UBX_CFG_NAVSPG_INFIL_CNOTHRS, 30, cfg_valset_msg_size);
+
 	// disable odometer & filtering
 	cfgValset<uint8_t>(UBX_CFG_KEY_ODO_USE_ODO, 0, cfg_valset_msg_size);
 	cfgValset<uint8_t>(UBX_CFG_KEY_ODO_USE_COG, 0, cfg_valset_msg_size);
@@ -618,6 +621,9 @@ int GPSDriverUBX::configureDevice(const GNSSSystemsMask &gnssSystems)
 
 		waitForAck(UBX_MSG_CFG_VALSET, UBX_CONFIG_TIMEOUT, true);
 	}
+
+	// disable  sbass & qzss in default
+	cfgValset<uint8_t>(UBX_CFG_KEY_SIGNAL_SBAS_ENA, 0, cfg_valset_msg_size);
 
 	// Configure message rates
 	// Send a new CFG-VALSET message to make sure it does not get too large
