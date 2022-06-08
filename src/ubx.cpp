@@ -622,9 +622,6 @@ int GPSDriverUBX::configureDevice(const GNSSSystemsMask &gnssSystems)
 		waitForAck(UBX_MSG_CFG_VALSET, UBX_CONFIG_TIMEOUT, true);
 	}
 
-	// disable  sbass & qzss in default
-	cfgValset<uint8_t>(UBX_CFG_KEY_SIGNAL_SBAS_ENA, 0, cfg_valset_msg_size);
-
 	// Configure message rates
 	// Send a new CFG-VALSET message to make sure it does not get too large
 	cfg_valset_msg_size = initCfgValset();
