@@ -198,6 +198,7 @@ public:
 		OutputMode output_mode;
 		GNSSSystemsMask gnss_systems;
 		InterfaceProtocolsMask interface_protocols;
+		bool force_reset_survey_in{false};
 	};
 
 

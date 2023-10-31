@@ -85,7 +85,7 @@ public:
 	}
 
 protected:
-
+	virtual bool restartSurveyInWithoutRTCM() { return true; }
 	enum class BaseSettingsType : uint8_t {
 		survey_in,
 		fixed_position

@@ -338,6 +338,10 @@ GPSDriverUBX::configure(unsigned &baudrate, const GPSConfig &config)
 		if (activateRTCMOutput(false) < 0) {
 			return -1;
 		}
+	} else if(config.force_reset_survey_in) {
+		if(!restartSurveyInWithoutRTCM()) {
+			return -1;
+		}
 	}
 
 	_configured = true;
@@ -546,6 +550,9 @@ int GPSDriverUBX::configureDevice(const GPSConfig &config, const int32_t uart2_b
 	cfgValset<uint8_t>(UBX_CFG_KEY_NAVSPG_UTCSTANDARD, 3 /* USNO (U.S. Naval Observatory derived from GPS) */,
 			   cfg_valset_msg_size);
 	cfgValset<uint8_t>(UBX_CFG_KEY_NAVSPG_DYNMODEL, _dyn_model, cfg_valset_msg_size);
+
+	cfgValset<uint8_t>(UBX_CFG_KEY_NAVSPG_INFIL_MINELEV, 20, cfg_valset_msg_size);
+	cfgValset<uint8_t>(UBX_CFG_KEY_NAVSPG_INFIL_CNOTHRS, 30, cfg_valset_msg_size);
 
 	// disable odometer & filtering
 	cfgValset<uint8_t>(UBX_CFG_KEY_ODO_USE_ODO, 0, cfg_valset_msg_size);
@@ -869,6 +876,74 @@ bool GPSDriverUBX::cfgValsetPort(uint32_t key_id, uint8_t value, int &msg_size)
 			if (!cfgValset<uint8_t>(key_id + 3, value, msg_size)) {
 				return false;
 			}
+		}
+	}
+
+	return true;
+}
+
+bool GPSDriverUBX::restartSurveyInWithoutRTCM()
+{
+	//stop it first
+	//FIXME: stopping the survey-in process does not seem to work
+	memset(&_buf.payload_tx_cfg_tmode3, 0, sizeof(_buf.payload_tx_cfg_tmode3));
+	_buf.payload_tx_cfg_tmode3.flags        = 0; /* disable time mode */
+
+	if (!sendMessage(UBX_MSG_CFG_TMODE3, (uint8_t *)&_buf, sizeof(_buf.payload_tx_cfg_tmode3))) {
+		UBX_WARN("TMODE3 failed. Device w/o base station support?");
+		return false;
+	}
+
+	if (waitForAck(UBX_MSG_CFG_TMODE3, UBX_CONFIG_TIMEOUT, true) < 0) {
+		return false;
+	}
+
+	if (_base_settings.type == BaseSettingsType::survey_in) {
+		UBX_DEBUG("Starting Survey-in");
+
+		memset(&_buf.payload_tx_cfg_tmode3, 0, sizeof(_buf.payload_tx_cfg_tmode3));
+		_buf.payload_tx_cfg_tmode3.flags        = 1; /* start survey-in */
+		_buf.payload_tx_cfg_tmode3.svinMinDur   = _base_settings.settings.survey_in.min_dur;
+		_buf.payload_tx_cfg_tmode3.svinAccLimit = _base_settings.settings.survey_in.acc_limit;
+
+		if (!sendMessage(UBX_MSG_CFG_TMODE3, (uint8_t *)&_buf, sizeof(_buf.payload_tx_cfg_tmode3))) {
+			return false;
+		}
+
+		if (waitForAck(UBX_MSG_CFG_TMODE3, UBX_CONFIG_TIMEOUT, true) < 0) {
+			return false;
+		}
+
+		/* enable status output of survey-in */
+		if (!configureMessageRateAndAck(UBX_MSG_NAV_SVIN, 5, true)) {
+			return false;
+		}
+
+	} else {
+		UBX_DEBUG("Setting fixed base position");
+
+		const FixedPositionSettings &settings = _base_settings.settings.fixed_position;
+
+		memset(&_buf.payload_tx_cfg_tmode3, 0, sizeof(_buf.payload_tx_cfg_tmode3));
+		_buf.payload_tx_cfg_tmode3.flags = 2 /* fixed mode */ | (1 << 8) /* lat/lon mode */;
+		int64_t lat64 = (int64_t)(settings.latitude * 1e9);
+		_buf.payload_tx_cfg_tmode3.ecefXOrLat = (int32_t)(lat64 / 100);
+		_buf.payload_tx_cfg_tmode3.ecefXOrLatHP = lat64 % 100; // range [-99, 99]
+		int64_t lon64 = (int64_t)(settings.longitude * 1e9);
+		_buf.payload_tx_cfg_tmode3.ecefYOrLon = (int32_t)(lon64 / 100);
+		_buf.payload_tx_cfg_tmode3.ecefYOrLonHP = lon64 % 100;
+		int64_t alt64 = (int64_t)((double)settings.altitude * 1e4);
+		_buf.payload_tx_cfg_tmode3.ecefZOrAlt = (int32_t)(alt64 / 100); // cm
+		_buf.payload_tx_cfg_tmode3.ecefZOrAltHP = alt64 % 100; // 0.1mm
+
+		_buf.payload_tx_cfg_tmode3.fixedPosAcc = (uint32_t)(settings.position_accuracy * 10.f);
+
+		if (!sendMessage(UBX_MSG_CFG_TMODE3, (uint8_t *)&_buf, sizeof(_buf.payload_tx_cfg_tmode3))) {
+			return false;
+		}
+
+		if (waitForAck(UBX_MSG_CFG_TMODE3, UBX_CONFIG_TIMEOUT, true) < 0) {
+			return false;
 		}
 	}
 
